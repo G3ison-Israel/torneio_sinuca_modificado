@@ -344,3 +344,28 @@ window.adicionarJogador = adicionarJogador;
 window.sortearGrupos = sortearGrupos;
 window.gerarMataMata = gerarMataMata;
 window.importarArquivo = importarArquivo;
+
+const firebaseConfig = {
+  apiKey: "SUA_API_KEY",
+  authDomain: "SEU_PROJETO.firebaseapp.com",
+  databaseURL: "https://SEU_PROJETO-default-rtdb.firebaseio.com",
+  projectId: "SEU_PROJETO",
+  storageBucket: "SEU_PROJETO.appspot.com",
+  messagingSenderId: "SEU_ID",
+  appId: "SEU_APP_ID"
+};
+
+// Inicializar Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// Exemplo: adicionar jogador
+firebase.database().ref("torneio/jogadores/João").set({
+    vitorias: 0,
+    grupo: ""
+});
+
+// Exemplo: atualizar vitória
+firebase.database().ref("torneio/jogadores/João/vitorias").set(1);
+
+

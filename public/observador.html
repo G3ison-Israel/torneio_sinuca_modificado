@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>Observador - Torneio de Sinuca</title>
+  <link rel="stylesheet" href="style_corrigido.css">
+  <style>
+    /* Esconde botões e inputs, pois o observador não edita nada */
+    button, input, #cadastro { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Torneio de Sinuca - Modo Observador</h1>
+
+    <section>
+      <h2>Jogadores</h2>
+      <ul id="listaJogadores"></ul>
+    </section>
+
+    <section>
+      <h2>Grupos Sorteados</h2>
+      <div id="resultadoGrupos"></div>
+    </section>
+
+    <section>
+      <h2>Partidas da Fase de Grupos</h2>
+      <div id="tabelaPartidas"></div>
+    </section>
+
+    <section>
+      <h2>Classificação</h2>
+      <div id="classificacaoGrupos"></div>
+    </section>
+
+    <section>
+      <h2>Mata-Mata</h2>
+      <div id="jogosMataMata"></div>
+    </section>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="firebase.js"></script>
+  <script type="module">
+    import { ouvirDados } from "./firebase.js";
+
+    ouvirDados("torneio_sinuca", "dados", (dados) => {
+      if (!dados) return;
+
+      const { jogadores, grupos, partidas, vitorias, faseMataMata } = dados;
+
+      // Copia as funções de exibição do script original
+      function atualizarLista() {
+        const ul = document.getElementById("listaJogadores");
+        ul.innerHTML = "";
+        jogadores.forEach(j => {
+          const li = document.createElement("li");
+          li.textContent = j;
+          ul.appendChild(li);
+        });
+      }
+
+      function exibirGrupos() {
+        const div = document.getElementById("resultadoGrupos");
+        div.innerHTML = "";
+        for (const grupo in grupos) {
+          const g = document.createElement("div");
+          g.innerHTML = `<strong>${grupo}:</strong> ${grupos[grupo].join(", ")}`;
+          div.appendChild(g);
+        }
+      }
+
+      function exibirPartidas() {
+        const div = document.getElementById("tabelaPartidas");
+        div.innerHTML = "";
+        partidas.forEach(partida => {
+          const p = document.createElement("div");
+          const vencedor = partida.vencedor ? ` - Vencedor: ${partida.vencedor}` : "";
+          p.innerHTML = `(${partida.grupo}) ${partida.jogador1} vs ${partida.jogador2}${vencedor}`;
+          div.appendChild(p);
+        });
+      }
+
+      function atualizarClassificacao() {
+        const div = document.getElementById("classificacaoGrupos");
+        div.innerHTML = "";
+        for (const grupo in grupos) {
+          const jogadoresGrupo = grupos[grupo];
+          const ranking = jogadoresGrupo
+            .map(j => ({ nome: j, vitorias: vitorias[j] }))
+            .sort((a, b) => b.vitorias - a.vitorias);
+          
+          const g = document.createElement("div");
+          g.innerHTML = `<strong>${grupo}:</strong><br>
+                         1º: ${ranking[0].nome} (${ranking[0].vitorias})<br>
+                         2º: ${ranking[1].nome} (${ranking[1].vitorias})`;
+          div.appendChild(g);
+        }
+      }
+
+      function exibirFaseMataMata(fases) {
+        const div = document.getElementById("jogosMataMata");
+        div.innerHTML = "";
+        fases.forEach((rodada, idx) => {
+          const faseDiv = document.createElement("div");
+          faseDiv.innerHTML = `<h3>Fase ${idx + 1}</h3>`;
+          rodada.forEach(jogo => {
+            const vencedor = jogo.vencedor ? ` - Vencedor: ${jogo.vencedor}` : "";
+            const jogoDiv = document.createElement("div");
+            jogoDiv.innerHTML = `${jogo.jogador1} vs ${jogo.jogador2}${vencedor}`;
+            faseDiv.appendChild(jogoDiv);
+          });
+          div.appendChild(faseDiv);
+        });
+      }
+
+      // Atualiza tudo ao vivo
+      atualizarLista();
+      exibirGrupos();
+      exibirPartidas();
+      atualizarClassificacao();
+      exibirFaseMataMata(faseMataMata);
+    });
+  </script>
+</body>
+</html>
